@@ -1,12 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPS Point Record Converter</title>
+    <title>SPS Point Converter</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.8.0/proj4.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #64748b;
+            --accent-color: #06b6d4;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --background-light: #f8fafc;
+            --background-white: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -14,237 +38,355 @@
         }
 
         body {
-            font-family: 'Segoe UI', 'Inter', 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, var(--background-light) 0%, #e0e7ff 100%);
             min-height: 100vh;
-            padding: 20px;
+            color: var(--text-primary);
+            line-height: 1.6;
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
+            padding: 2rem;
         }
 
-        h1 {
+        /* Header */
+        .header {
             text-align: center;
-            color: #333;
-            margin-bottom: 40px;
-            font-size: 2.5rem;
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            font-weight: 700;
+            margin-bottom: 1rem;
+            letter-spacing: -0.025em;
         }
 
+        .header p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Card Component */
+        .card {
+            background: var(--background-white);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-xl);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-content {
+            padding: 2rem;
+        }
+
+        /* Upload Section */
         .upload-section {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 30px;
+            margin-bottom: 2rem;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 3rem 2rem;
             text-align: center;
-            color: white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area:hover,
+        .upload-area.drag-over {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(6, 182, 212, 0.05) 100%);
+            transform: scale(1.02);
+        }
+
+        .upload-area.drag-over {
+            border-style: solid;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover .upload-icon {
+            transform: scale(1.1);
+        }
+
+        .upload-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-subtext {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
         }
 
         .file-input {
             display: none;
         }
 
-        .file-label {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 15px 30px;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            font-size: 1.1rem;
-            font-weight: 600;
-            text-decoration: none;
-        }
-
-        .file-label:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-        }
-
+        /* File Grid */
         .files-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
         }
 
         .file-card {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 20px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(5px);
+            background: var(--background-white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
 
         .file-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
         }
 
         .file-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .file-info {
+            flex: 1;
         }
 
         .file-name {
-            font-weight: bold;
-            font-size: 1.1rem;
-            color: white;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .file-size {
-            font-size: 0.9rem;
-            opacity: 0.8;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
         }
 
-        .remove-file {
-            background: rgba(255, 0, 0, 0.7);
+        .remove-btn {
+            background: var(--error-color);
             color: white;
             border: none;
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            width: 2rem;
+            height: 2rem;
             cursor: pointer;
-            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: all 0.3s ease;
+            font-size: 0.875rem;
         }
 
-        .remove-file:hover {
-            background: rgba(255, 0, 0, 0.9);
+        .remove-btn:hover {
+            background: #dc2626;
             transform: scale(1.1);
         }
 
         .output-name-group {
-            margin-bottom: 15px;
+            margin-bottom: 1rem;
         }
 
         .output-name-group label {
             display: block;
-            margin-bottom: 5px;
-            font-size: 0.9rem;
-            opacity: 0.9;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
         }
 
         .output-name-input {
             width: 100%;
-            padding: 10px;
-            border: none;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.9);
-            color: #333;
-            font-size: 0.95rem;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        .output-name-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
         .file-status {
-            margin-top: 10px;
-            padding: 8px;
-            border-radius: 5px;
-            font-size: 0.9rem;
-            text-align: center;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
             font-weight: 500;
+            text-align: center;
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
 
-        .status-ready { background: rgba(0, 255, 0, 0.2); }
-        .status-processing { background: rgba(255, 255, 0, 0.2); }
-        .status-completed { background: rgba(0, 255, 0, 0.3); }
-        .status-error { background: rgba(255, 0, 0, 0.2); }
+        .status-ready {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
 
+        .status-processing {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        .status-completed {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error-color);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        /* Configuration Section */
         .config-section {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .config-card {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            border-radius: 15px;
-            padding: 25px;
-            color: white;
-        }
-
-        .config-card h3 {
-            margin-bottom: 15px;
-            font-size: 1.3rem;
-            text-align: center;
-            font-weight: 600;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
         }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
         }
 
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
         }
 
         input, select {
             width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
             font-size: 1rem;
-            background: rgba(255, 255, 255, 0.9);
-            color: #333;
+            transition: all 0.3s ease;
+            background: var(--background-white);
         }
 
         input:focus, select:focus {
             outline: none;
-            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
         .checkbox-group {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: var(--radius-md);
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-group:hover {
+            background: rgba(37, 99, 235, 0.05);
         }
 
         .checkbox-group input[type="checkbox"] {
             width: auto;
             margin: 0;
+            accent-color: var(--primary-color);
         }
 
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        /* Convert Section */
         .convert-section {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 2rem;
         }
 
         .convert-btn {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             color: white;
             border: none;
-            padding: 18px 40px;
-            border-radius: 50px;
-            font-size: 1.2rem;
-            font-weight: 700;
+            padding: 1rem 2.5rem;
+            border-radius: var(--radius-lg);
+            font-size: 1.125rem;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            position: relative;
+            overflow: hidden;
         }
 
-        .convert-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        .convert-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
         }
 
         .convert-btn:disabled {
@@ -253,201 +395,196 @@
             transform: none;
         }
 
-        .results-section {
-            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-            border-radius: 15px;
-            padding: 30px;
-            display: none;
-            margin-bottom: 30px;
+        .convert-btn.processing {
+            animation: pulse 2s infinite;
         }
 
-        .results-title {
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin-top: 1.5rem;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 0.5rem;
+            background: var(--border-color);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            border-radius: var(--radius-sm);
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .progress-text {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
             text-align: center;
-            margin-bottom: 20px;
-            font-size: 1.5rem;
-            color: #333;
-            font-weight: 600;
+        }
+
+        /* Results Section */
+        .results-section {
+            display: none;
+            margin-bottom: 2rem;
         }
 
         .file-results-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 1.5rem;
         }
 
         .file-result-card {
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            background: var(--background-white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
         }
 
         .file-result-header {
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #333;
-            border-bottom: 2px solid #667eea;
-            padding-bottom: 10px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .download-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 10px;
+            gap: 0.75rem;
         }
 
         .download-btn {
-            background: linear-gradient(45deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             color: white;
             text-decoration: none;
-            padding: 12px 15px;
-            border-radius: 8px;
-            font-weight: 600;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            font-weight: 500;
             text-align: center;
             transition: all 0.3s ease;
-            display: block;
-            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
         }
 
         .download-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-md);
         }
 
+        .download-all-btn {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            grid-column: 1 / -1;
+            font-size: 1rem;
+            padding: 1rem;
+        }
+
+        /* Preview Section */
         .preview-section {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-top: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            display: none;
+            margin-bottom: 2rem;
         }
 
         .preview-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 15px;
-            font-size: 0.9rem;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
         }
 
         .preview-table th,
         .preview-table td {
-            padding: 8px 12px;
+            padding: 0.75rem;
             text-align: center;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .preview-table th {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             color: white;
-            font-size: 0.85rem;
+            font-weight: 600;
+            font-size: 0.8rem;
         }
 
+        .preview-table tr:hover {
+            background: rgba(37, 99, 235, 0.05);
+        }
+
+        /* Status Messages */
         .status {
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 8px;
-            font-weight: 600;
-            text-align: center;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+            border-radius: var(--radius-lg);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
         .status.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(16, 185, 129, 0.2);
         }
 
         .status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error-color);
+            border: 1px solid rgba(239, 68, 68, 0.2);
         }
 
         .status.info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--accent-color);
+            border: 1px solid rgba(6, 182, 212, 0.2);
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        .processing {
-            animation: pulse 1.5s infinite;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 4px;
-            margin-top: 10px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(45deg, #00ff00, #00cc00);
-            border-radius: 4px;
-            transition: width 0.3s ease;
-        }
-
-        .file-points-count {
-            font-size: 0.9rem;
-            opacity: 0.9;
-            margin-top: 5px;
-        }
-
-        .all-files-card {
-            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-            border: 3px solid #ff6b6b;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .all-files-card::before {
-            content: '⭐';
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 24px;
-            animation: twinkle 2s infinite;
-        }
-
-        @keyframes twinkle {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.2); }
-        }
-
-        .download-all-btn {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
-            grid-column: 1 / -1;
-            font-size: 1rem;
-            padding: 15px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .download-all-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .download-all-btn:hover::before {
-            left: 100%;
-        }
-
+        /* Responsive Design */
         @media (max-width: 768px) {
             .container {
-                padding: 20px;
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
             }
             
             .files-grid,
@@ -456,107 +593,229 @@
                 grid-template-columns: 1fr;
             }
             
-            h1 {
-                font-size: 2rem;
+            .card-content {
+                padding: 1.5rem;
             }
+            
+            .upload-area {
+                padding: 2rem 1rem;
+            }
+        }
+
+        /* Loading Animation */
+        .loading-spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            cursor: help;
+        }
+
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--text-primary);
+            color: white;
+            padding: 0.5rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+
+        .tooltip:hover::after {
+            opacity: 1;
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-up {
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🗺️SPS Point Converter</h1>
+        <div class="header">
+            <h1><i class="fas fa-map-marked-alt"></i>SPS Point Converter</h1>
+            <p>An advanced tool to convert SPS point files to multiple spatial formats with ease and high accuracy.</p>
+        </div>
         
-        <div class="upload-section">
-            <h2>Upload SPS Point Files</h2>
-            <p style="margin: 15px 0;">Select your .S or .R point files for conversion</p>
-            <input type="file" id="fileInput" class="file-input" multiple accept=".S,.R,.s,.r">
-            <label for="fileInput" class="file-label">📁 Choose Files</label>
-            <div id="filesGrid" class="files-grid"></div>
+        <div class="card upload-section">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    Upload Files
+                </h2>
+            </div>
+            <div class="card-content">
+                <div class="upload-area" id="uploadArea">
+                    <i class="fas fa-file-upload upload-icon"></i>
+                    <div class="upload-text">Drag & Drop SPS Files Here</div>
+                    <div class="upload-subtext">Or click to choose files (.S, .R)</div>
+                    <input type="file" id="fileInput" class="file-input" multiple accept=".S,.R,.s,.r">
+                </div>
+                <div id="filesGrid" class="files-grid"></div>
+            </div>
         </div>
 
         <div class="config-section">
-            <div class="config-card">
-                <h3>🌍 Coordinate System</h3>
-                <div class="form-group">
-                    <label for="utmZone">UTM Zone:</label>
-                    <select id="utmZone">
-                        <option value="32">Zone 32N</option>
-                        <option value="33">Zone 33N</option>
-                        <option value="34">Zone 34N</option>
-                        <option value="35">Zone 35N</option>
-                        <option value="36">Zone 36N</option>
-                        <option value="37">Zone 37N</option>
-                        <option value="38">Zone 38N</option>
-                        <option value="39">Zone 39N</option>
-                    </select>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-globe"></i>
+                        Coordinate System
+                    </h3>
                 </div>
-                <div class="form-group">
-                    <label for="datum">Datum:</label>
-                    <select id="datum">
-                        <option value="WGS84">WGS84</option>
-                        <option value="ED50">ED50</option>
-                        <option value="NAD83">NAD83</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="config-card">
-                <h3>📊 Export Options</h3>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="exportCSV" checked>
-                    <label for="exportCSV">CSV Format</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="exportGeoJSON" checked>
-                    <label for="exportGeoJSON">GeoJSON Format</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="exportKML" checked>
-                    <label for="exportKML">KML Format</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="exportShapefile" checked>
-                    <label for="exportShapefile">Shapefile Format</label>
+                <div class="card-content">
+                    <div class="form-group">
+                        <label for="utmZone">UTM Zone:</label>
+                        <select id="utmZone">
+                            <option value="32">Zone 32N</option>
+                            <option value="33">Zone 33N</option>
+                            <option value="34">Zone 34N</option>
+                            <option value="35">Zone 35N</option>
+                            <option value="36">Zone 36N</option>
+                            <option value="37">Zone 37N</option>
+                            <option value="38">Zone 38N</option>
+                            <option value="39">Zone 39N</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="datum">Datum:</label>
+                        <select id="datum">
+                            <option value="WGS84">WGS84</option>
+                            <option value="ED50">ED50</option>
+                            <option value="NAD83">NAD83</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
-            <div class="config-card">
-                <h3>⚙️ Additional Settings</h3>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="showPreview" checked>
-                    <label for="showPreview">Show Data Preview</label>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-download"></i>
+                        Export Options
+                    </h3>
                 </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="zipAllFiles">
-                    <label for="zipAllFiles">Compress All Files into One Archive</label>
+                <div class="card-content">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="exportCSV" checked>
+                        <label for="exportCSV">CSV Format</label>
+                        <i class="fas fa-info-circle tooltip" data-tooltip="Simple tabular file"></i>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="exportGeoJSON" checked>
+                        <label for="exportGeoJSON">GeoJSON Format</label>
+                        <i class="fas fa-info-circle tooltip" data-tooltip="Geospatial format for the web"></i>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="exportKML" checked>
+                        <label for="exportKML">KML Format</label>
+                        <i class="fas fa-info-circle tooltip" data-tooltip="Compatible with Google Earth"></i>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="exportShapefile" checked>
+                        <label for="exportShapefile">Shapefile Format</label>
+                        <i class="fas fa-info-circle tooltip" data-tooltip="Standard GIS format"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-cog"></i>
+                        Additional Settings
+                    </h3>
+                </div>
+                <div class="card-content">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showPreview" checked>
+                        <label for="showPreview">Show Data Preview</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="zipAllFiles">
+                        <label for="zipAllFiles">Compress All Files into One Archive</label>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="convert-section">
-            <button id="convertBtn" class="convert-btn">🚀 Convert Files</button>
-            <div id="globalProgress" style="display: none; margin-top: 15px;">
+            <button id="convertBtn" class="convert-btn">
+                <i class="fas fa-rocket"></i>
+                Convert Files
+            </button>
+            <div id="progressContainer" class="progress-container">
                 <div class="progress-bar">
                     <div id="progressFill" class="progress-fill" style="width: 0%"></div>
                 </div>
-                <p id="progressText" style="margin-top: 10px; color: #333;">Converting...</p>
+                <p id="progressText" class="progress-text">Converting...</p>
             </div>
         </div>
 
-        <div id="resultsSection" class="results-section">
-            <h3 class="results-title">📥 Download Converted Files</h3>
-            <div id="fileResultsGrid" class="file-results-grid"></div>
+        <div id="resultsSection" class="results-section card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-download"></i>
+                    Download Converted Files
+                </h3>
+            </div>
+            <div class="card-content">
+                <div id="fileResultsGrid" class="file-results-grid"></div>
+            </div>
         </div>
 
-        <div id="previewSection" class="preview-section" style="display: none;">
-            <h3>👀 Data Preview</h3>
-            <div id="previewContent"></div>
+        <div id="previewSection" class="preview-section card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-eye"></i>
+                    Data Preview
+                </h3>
+            </div>
+            <div class="card-content">
+                <div id="previewContent"></div>
+            </div>
         </div>
 
         <div id="status"></div>
     </div>
 
     <script>
+        // Global variables
         let uploadedFiles = [];
         let fileDataMap = {};
         let convertedFiles = {};
@@ -568,20 +827,81 @@
             'NAD83': '+proj=longlat +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +no_defs'
         };
 
-        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
-        document.getElementById('convertBtn').addEventListener('click', convertFiles);
+        // Initialize event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeEventListeners();
+        });
+
+        function initializeEventListeners() {
+            const fileInput = document.getElementById('fileInput');
+            const uploadArea = document.getElementById('uploadArea');
+            const convertBtn = document.getElementById('convertBtn');
+
+            // File input change
+            fileInput.addEventListener('change', handleFileUpload);
+
+            // Upload area click
+            uploadArea.addEventListener('click', () => fileInput.click());
+
+            // Drag and drop functionality
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('dragleave', handleDragLeave);
+            uploadArea.addEventListener('drop', handleDrop);
+
+            // Convert button
+            convertBtn.addEventListener('click', convertFiles);
+
+            // Prevent default drag behaviors
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, preventDefaults, false);
+                document.body.addEventListener(eventName, preventDefaults, false);
+            });
+        }
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function handleDragOver(e) {
+            document.getElementById('uploadArea').classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            document.getElementById('uploadArea').classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            const uploadArea = document.getElementById('uploadArea');
+            uploadArea.classList.remove('drag-over');
+            
+            const files = Array.from(e.dataTransfer.files);
+            addFiles(files);
+        }
 
         function handleFileUpload(event) {
-            const newFiles = Array.from(event.target.files);
-            
-            // Add new files, avoid duplicates
+            const files = Array.from(event.target.files);
+            addFiles(files);
+        }
+
+        function addFiles(newFiles) {
+            // Filter and add new files, avoid duplicates
             newFiles.forEach(file => {
-                if (!uploadedFiles.find(f => f.name === file.name && f.size === file.size)) {
-                    uploadedFiles.push(file);
+                if (file.name.match(/\.(S|R|s|r)$/)) {
+                    if (!uploadedFiles.find(f => f.name === file.name && f.size === file.size)) {
+                        uploadedFiles.push(file);
+                    }
                 }
             });
             
             displayFileCards();
+            
+            // Add animation to new cards
+            setTimeout(() => {
+                document.querySelectorAll('.file-card').forEach(card => {
+                    card.classList.add('slide-up');
+                });
+            }, 100);
         }
 
         function displayFileCards() {
@@ -595,11 +915,16 @@
             filesGrid.innerHTML = uploadedFiles.map((file, index) => `
                 <div class="file-card" data-index="${index}">
                     <div class="file-header">
-                        <div>
-                            <div class="file-name">📄 ${file.name}</div>
+                        <div class="file-info">
+                            <div class="file-name">
+                                <i class="fas fa-file-alt"></i>
+                                ${file.name}
+                            </div>
                             <div class="file-size">${(file.size / 1024).toFixed(1)} KB</div>
                         </div>
-                        <button class="remove-file" onclick="removeFile(${index})">×</button>
+                        <button class="remove-btn" onclick="removeFile(${index})">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
                     <div class="output-name-group">
                         <label>Output File Name:</label>
@@ -609,6 +934,7 @@
                                id="outputName_${index}">
                     </div>
                     <div class="file-status status-ready" id="fileStatus_${index}">
+                        <i class="fas fa-check-circle"></i>
                         Ready for conversion
                     </div>
                     <div class="file-points-count" id="pointsCount_${index}"></div>
@@ -629,7 +955,16 @@
 
         function showStatus(message, type = 'success') {
             const statusDiv = document.getElementById('status');
-            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+            const iconClass = type === 'success' ? 'fa-check-circle' : 
+                             type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+            
+            statusDiv.innerHTML = `
+                <div class="status ${type} fade-in">
+                    <i class="fas ${iconClass}"></i>
+                    ${message}
+                </div>
+            `;
+            
             setTimeout(() => statusDiv.innerHTML = '', 5000);
         }
 
@@ -638,27 +973,31 @@
             const pointsElement = document.getElementById(`pointsCount_${index}`);
             
             if (statusElement) {
+                const iconClass = status === 'completed' ? 'fa-check-circle' :
+                                 status === 'processing' ? 'fa-spinner fa-spin' :
+                                 status === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle';
+                
                 statusElement.className = `file-status status-${status}`;
-                statusElement.textContent = message;
+                statusElement.innerHTML = `<i class="fas ${iconClass}"></i> ${message}`;
             }
             
             if (pointsElement && pointsCount !== null) {
-                pointsElement.textContent = `Points: ${pointsCount}`;
+                pointsElement.innerHTML = `<i class="fas fa-map-pin"></i> Points: ${pointsCount}`;
             }
         }
 
         function updateGlobalProgress(current, total, message) {
             const progressFill = document.getElementById('progressFill');
             const progressText = document.getElementById('progressText');
-            const globalProgress = document.getElementById('globalProgress');
+            const progressContainer = document.getElementById('progressContainer');
             
             if (total > 1) {
-                globalProgress.style.display = 'block';
+                progressContainer.style.display = 'block';
                 const percentage = (current / total) * 100;
                 progressFill.style.width = `${percentage}%`;
                 progressText.textContent = `${message} (${current}/${total})`;
             } else {
-                globalProgress.style.display = 'none';
+                progressContainer.style.display = 'none';
             }
         }
 
@@ -812,185 +1151,395 @@
             return new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
         }
 
-        async function generateShapefile(data) {
-            // Generate DBF, SHP, and PRJ files
-            function generateDBF(data) {
-                if (data.length === 0) return new Uint8Array(32);
-
-                const fields = [
-                    { name: 'TYPE', type: 'C', length: 1 },
-                    { name: 'LINE', type: 'N', length: 10, decimals: 2 },
-                    { name: 'POINT', type: 'N', length: 10, decimals: 2 },
-                    { name: 'INDEX', type: 'N', length: 5 },
-                    { name: 'EASTING', type: 'N', length: 12, decimals: 2 },
-                    { name: 'NORTHING', type: 'N', length: 12, decimals: 2 },
-                    { name: 'ELEVATION', type: 'N', length: 10, decimals: 2 },
-                    { name: 'LONGITUDE', type: 'N', length: 12, decimals: 6 },
-                    { name: 'LATITUDE', type: 'N', length: 12, decimals: 6 }
-                ];
-
-                const recordLength = fields.reduce((sum, f) => sum + f.length, 0) + 1;
-                const headerLength = 32 + fields.length * 32 + 1;
-                const totalLength = headerLength + data.length * recordLength;
-                
-                const buffer = new ArrayBuffer(totalLength);
-                const view = new DataView(buffer);
-                const encoder = new TextEncoder();
-
-                // Header
-                view.setUint8(0, 0x03);
-                const now = new Date();
-                view.setUint8(1, now.getFullYear() - 1900);
-                view.setUint8(2, now.getMonth() + 1);
-                view.setUint8(3, now.getDate());
-                view.setUint32(4, data.length, true);
-                view.setUint16(8, headerLength, true);
-                view.setUint16(10, recordLength, true);
-
-                // Field descriptors
-                let offset = 32;
-                fields.forEach((field, i) => {
-                    if (offset + 32 > buffer.byteLength) return;
-                    
-                    const nameBytes = encoder.encode(field.name.padEnd(11, '\0').substring(0, 11));
-                    for (let j = 0; j < 11; j++) {
-                        view.setUint8(offset + j, nameBytes[j] || 0);
-                    }
-                    view.setUint8(offset + 11, field.type.charCodeAt(0));
-                    view.setUint8(offset + 16, field.length);
-                    if (field.decimals) view.setUint8(offset + 17, field.decimals);
-                    offset += 32;
-                });
-
-                if (offset < buffer.byteLength) {
-                    view.setUint8(offset++, 0x0D);
+        // WKT definitions for common coordinate systems
+        const wktDefinitions = {
+            'WGS84': {
+                geographic: 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]',
+                utm: {
+                    32: 'PROJCS["WGS_1984_UTM_Zone_32N",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",9.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',
+                    33: 'PROJCS["WGS_1984_UTM_Zone_33N",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",15.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',
+                    34: 'PROJCS["WGS_1984_UTM_Zone_34N",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",21.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',
+                    35: 'PROJCS["WGS_1984_UTM_Zone_35N",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",27.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',
+                    36: 'PROJCS["WGS_1984_UTM_Zone_36N",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",33.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',
+                    37: 'PROJCS["WGS_1984_UTM_Zone_37N",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",39.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',
+                    38: 'PROJCS["WGS_1984_UTM_Zone_38N",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",45.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',
+                    39: 'PROJCS["WGS_1984_UTM_Zone_39N",GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",51.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]'
                 }
-
-                // Records
-                data.forEach(point => {
-                    if (offset >= buffer.byteLength) return;
-                    
-                    view.setUint8(offset++, 0x20);
-                    
-                    const values = [
-                        (point.type || '').toString(),
-                        (point.line || 0).toFixed(2),
-                        (point.point || 0).toFixed(2),
-                        (point.index || 0).toString(),
-                        (point.easting || 0).toFixed(2),
-                        (point.northing || 0).toFixed(2),
-                        (point.elevation || 0).toFixed(2),
-                        (point.longitude || 0).toFixed(6),
-                        (point.latitude || 0).toFixed(6)
-                    ];
-
-                    values.forEach((value, i) => {
-                        if (offset + fields[i].length > buffer.byteLength) return;
-                        
-                        const padded = value.toString().padEnd(fields[i].length, ' ').substring(0, fields[i].length);
-                        const bytes = encoder.encode(padded);
-                        for (let j = 0; j < fields[i].length; j++) {
-                            if (offset < buffer.byteLength) {
-                                view.setUint8(offset++, bytes[j] || 32);
-                            }
-                        }
-                    });
-                });
-
-                return new Uint8Array(buffer);
-            }
-
-            function generateSHP(data) {
-                if (data.length === 0) return new Uint8Array(100);
-
-                const recordSize = 28;
-                const totalSize = 100 + data.length * recordSize;
-                const buffer = new ArrayBuffer(totalSize);
-                const view = new DataView(buffer);
-
-                // Header
-                view.setUint32(0, 9994, false);
-                view.setUint32(24, totalSize / 2, false);
-                view.setUint32(28, 1000, true);
-                view.setUint32(32, 1, true);
-
-                const validPoints = data.filter(p => 
-                    p.longitude && p.latitude && 
-                    !isNaN(p.longitude) && !isNaN(p.latitude) &&
-                    isFinite(p.longitude) && isFinite(p.latitude)
-                );
-                
-                if (validPoints.length === 0) {
-                    view.setFloat64(36, 0, true);
-                    view.setFloat64(44, 0, true);
-                    view.setFloat64(52, 0, true);
-                    view.setFloat64(60, 0, true);
-                } else {
-                    const lons = validPoints.map(p => p.longitude);
-                    const lats = validPoints.map(p => p.latitude);
-                    view.setFloat64(36, Math.min(...lons), true);
-                    view.setFloat64(44, Math.min(...lats), true);
-                    view.setFloat64(52, Math.max(...lons), true);
-                    view.setFloat64(60, Math.max(...lats), true);
+            },
+            'ED50': {
+                geographic: 'GEOGCS["GCS_European_Datum_1950",DATUM["D_European_Datum_1950",SPHEROID["International_1924",6378388.0,297.0]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]',
+                utm: {
+                    32: 'PROJCS["ED_1950_UTM_Zone_32N",GEOGCS["GCS_European_Datum_1950",DATUM["D_European_Datum_1950",SPHEROID["International_1924",6378388.0,297.0]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",9.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',
+                    33: 'PROJCS["ED_1950_UTM_Zone_33N",GEOGCS["GCS_European_Datum_1950",DATUM["D_European_Datum_1950",SPHEROID["International_1924",6378388.0,297.0]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",15.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',
+                    34: 'PROJCS["ED_1950_UTM_Zone_34N",GEOGCS["GCS_European_Datum_1950",DATUM["D_European_Datum_1950",SPHEROID["International_1924",6378388.0,297.0]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",21.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',
+                    35: 'PROJCS["ED_1950_UTM_Zone_35N",GEOGCS["GCS_European_Datum_1950",DATUM["D_European_Datum_1950",SPHEROID["International_1924",6378388.0,297.0]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",27.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',
+                    36: 'PROJCS["ED_1950_UTM_Zone_36N",GEOGCS["GCS_European_Datum_1950",DATUM["D_European_Datum_1950",SPHEROID["International_1924",6378388.0,297.0]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",33.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',
+                    37: 'PROJCS["ED_1950_UTM_Zone_37N",GEOGCS["GCS_European_Datum_1950",DATUM["D_European_Datum_1950",SPHEROID["International_1924",6378388.0,297.0]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",39.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',
+                    38: 'PROJCS["ED_1950_UTM_Zone_38N",GEOGCS["GCS_European_Datum_1950",DATUM["D_European_Datum_1950",SPHEROID["International_1924",6378388.0,297.0]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",45.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',
+                    39: 'PROJCS["ED_1950_UTM_Zone_39N",GEOGCS["GCS_European_Datum_1950",DATUM["D_European_Datum_1950",SPHEROID["International_1924",6378388.0,297.0]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",51.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]'
                 }
-
-                let offset = 100;
-                data.forEach((point, i) => {
-                    if (offset + recordSize > buffer.byteLength) return;
-                    
-                    view.setUint32(offset, i + 1, false);
-                    view.setUint32(offset + 4, 10, false);
-                    view.setUint32(offset + 8, 1, true);
-                    
-                    const lon = (point.longitude && isFinite(point.longitude)) ? point.longitude : 0;
-                    const lat = (point.latitude && isFinite(point.latitude)) ? point.latitude : 0;
-                    
-                    view.setFloat64(offset + 12, lon, true);
-                    view.setFloat64(offset + 20, lat, true);
-                    offset += recordSize;
-                });
-
-                return new Uint8Array(buffer);
+            },
+            'NAD83': {
+                geographic: 'GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]',
+                utm: {
+                    32: 'PROJCS["NAD_1983_UTM_Zone_32N",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",9.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',
+                    33: 'PROJCS["NAD_1983_UTM_Zone_33N",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",15.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',
+                    34: 'PROJCS["NAD_1983_UTM_Zone_34N",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",21.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',
+                    35: 'PROJCS["NAD_1983_UTM_Zone_35N",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",27.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',
+                    36: 'PROJCS["NAD_1983_UTM_Zone_36N",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",33.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',
+                    37: 'PROJCS["NAD_1983_UTM_Zone_37N",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",39.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',
+                    38: 'PROJCS["NAD_1983_UTM_Zone_38N",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",45.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]',
+                    39: 'PROJCS["NAD_1983_UTM_Zone_39N",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Transverse_Mercator"],PARAMETER["False_Easting",500000.0],PARAMETER["False_Northing",0.0],PARAMETER["Central_Meridian",51.0],PARAMETER["Scale_Factor",0.9996],PARAMETER["Latitude_Of_Origin",0.0],UNIT["Meter",1.0]]'
+                }
             }
+        };
 
-            function generatePRJ() {
-                return 'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4326"]]';
-            }
+        // Function to get the appropriate WKT string based on coordinate system settings
+        function getWKTString(datum, utmZone) {
+            // For geographic (lat/lon) output, use geographic WKT
+            return wktDefinitions[datum].geographic;
+            
+            // If we were to use UTM coordinates in the shapefile, we would use:
+            // return wktDefinitions[datum].utm[utmZone];
+        }
 
+        // Improved Shapefile generation function
+        async function generateShapefile(data, datum = 'WGS84', utmZone = 32) {
             const zip = new JSZip();
-            zip.file('points.shp', generateSHP(data));
-            zip.file('points.dbf', generateDBF(data));
-            zip.file('points.prj', generatePRJ());
+            
+            // Generate proper .prj file with correct WKT
+            const prjContent = getWKTString(datum, utmZone);
+            zip.file('points.prj', prjContent);
+            
+            // Generate proper .shp file
+            const shpContent = generateSHPContent(data);
+            zip.file('points.shp', shpContent);
+            
+            // Generate proper .shx file
+            const shxContent = generateSHXContent(data);
+            zip.file('points.shx', shxContent);
+            
+            // Generate proper .dbf file
+            const dbfContent = generateDBFContent(data);
+            zip.file('points.dbf', dbfContent);
+            
+            return await zip.generateAsync({ type: 'blob' });
+        }
 
-            return zip.generateAsync({ type: 'blob' });
+        // Improved .shp file generation
+        function generateSHPContent(data) {
+            // Calculate file size: header (100 bytes) + records
+            // Each point record: 8 bytes (record header) + 4 bytes (shape type) + 16 bytes (X,Y coordinates) = 28 bytes
+            const recordSize = 28;
+            const totalFileSize = 100 + (data.length * recordSize);
+            const fileLengthInWords = totalFileSize / 2; // File length is in 16-bit words
+            
+            // Calculate bounding box
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            data.forEach(point => {
+                minX = Math.min(minX, point.longitude);
+                minY = Math.min(minY, point.latitude);
+                maxX = Math.max(maxX, point.longitude);
+                maxY = Math.max(maxY, point.latitude);
+            });
+            
+            // Create the complete .shp file
+            const buffer = new ArrayBuffer(totalFileSize);
+            const view = new DataView(buffer);
+            
+            // File Header (100 bytes)
+            view.setUint32(0, 9994, false);           // File code (big-endian)
+            view.setUint32(4, 0, false);             // Unused
+            view.setUint32(8, 0, false);             // Unused
+            view.setUint32(12, 0, false);            // Unused
+            view.setUint32(16, 0, false);            // Unused
+            view.setUint32(20, 0, false);            // Unused
+            view.setUint32(24, fileLengthInWords, false); // File length in 16-bit words (big-endian)
+            view.setUint32(28, 1000, true);          // Version (little-endian)
+            view.setUint32(32, 1, true);             // Shape type: Point (little-endian)
+            view.setFloat64(36, minX, true);         // Bounding box Xmin (little-endian)
+            view.setFloat64(44, minY, true);         // Bounding box Ymin (little-endian)
+            view.setFloat64(52, maxX, true);         // Bounding box Xmax (little-endian)
+            view.setFloat64(60, maxY, true);         // Bounding box Ymax (little-endian)
+            view.setFloat64(68, 0, true);            // Bounding box Zmin (little-endian)
+            view.setFloat64(76, 0, true);            // Bounding box Zmax (little-endian)
+            view.setFloat64(84, 0, true);            // Bounding box Mmin (little-endian)
+            view.setFloat64(92, 0, true);            // Bounding box Mmax (little-endian)
+            
+            // Records
+            let offset = 100;
+            data.forEach((point, index) => {
+                // Record header (8 bytes)
+                view.setUint32(offset, index + 1, false);     // Record number (big-endian, 1-based)
+                view.setUint32(offset + 4, 10, false);        // Content length in 16-bit words (big-endian)
+                
+                // Record content (20 bytes)
+                view.setUint32(offset + 8, 1, true);          // Shape type: Point (little-endian)
+                view.setFloat64(offset + 12, point.longitude, true); // X coordinate (little-endian)
+                view.setFloat64(offset + 20, point.latitude, true);  // Y coordinate (little-endian)
+                
+                offset += recordSize;
+            });
+            
+            return new Blob([buffer], { type: 'application/octet-stream' });
+        }
+
+        // Improved .shx file generation
+        function generateSHXContent(data) {
+            // .shx file: header (100 bytes) + index records (8 bytes each)
+            const indexRecordSize = 8;
+            const totalFileSize = 100 + (data.length * indexRecordSize);
+            const fileLengthInWords = totalFileSize / 2;
+            
+            // Calculate bounding box (same as .shp)
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            data.forEach(point => {
+                minX = Math.min(minX, point.longitude);
+                minY = Math.min(minY, point.latitude);
+                maxX = Math.max(maxX, point.longitude);
+                maxY = Math.max(maxY, point.latitude);
+            });
+            
+            const buffer = new ArrayBuffer(totalFileSize);
+            const view = new DataView(buffer);
+            
+            // File Header (identical to .shp header)
+            view.setUint32(0, 9994, false);           // File code (big-endian)
+            view.setUint32(4, 0, false);             // Unused
+            view.setUint32(8, 0, false);             // Unused
+            view.setUint32(12, 0, false);            // Unused
+            view.setUint32(16, 0, false);            // Unused
+            view.setUint32(20, 0, false);            // Unused
+            view.setUint32(24, fileLengthInWords, false); // File length in 16-bit words (big-endian)
+            view.setUint32(28, 1000, true);          // Version (little-endian)
+            view.setUint32(32, 1, true);             // Shape type: Point (little-endian)
+            view.setFloat64(36, minX, true);         // Bounding box Xmin (little-endian)
+            view.setFloat64(44, minY, true);         // Bounding box Ymin (little-endian)
+            view.setFloat64(52, maxX, true);         // Bounding box Xmax (little-endian)
+            view.setFloat64(60, maxY, true);         // Bounding box Ymax (little-endian)
+            view.setFloat64(68, 0, true);            // Bounding box Zmin (little-endian)
+            view.setFloat64(76, 0, true);            // Bounding box Zmax (little-endian)
+            view.setFloat64(84, 0, true);            // Bounding box Mmin (little-endian)
+            view.setFloat64(92, 0, true);            // Bounding box Mmax (little-endian)
+            
+            // Index records
+            let offset = 100;
+            let shpRecordOffset = 50; // Start after .shp header (100 bytes = 50 16-bit words)
+            
+            data.forEach((point, index) => {
+                // Each index record: 4 bytes offset + 4 bytes content length
+                view.setUint32(offset, shpRecordOffset, false);     // Offset in .shp file (big-endian, in 16-bit words)
+                view.setUint32(offset + 4, 10, false);             // Content length (big-endian, in 16-bit words)
+                
+                offset += indexRecordSize;
+                shpRecordOffset += 14; // Each .shp record is 28 bytes = 14 16-bit words
+            });
+            
+            return new Blob([buffer], { type: 'application/octet-stream' });
+        }
+
+        // Improved .dbf file generation
+        function generateDBFContent(data) {
+            // DBF structure: header + field descriptors + records
+            const fieldCount = 8; // Type, Line, Point, Index, Easting, Northing, Elevation, Filename
+            const headerSize = 32 + (fieldCount * 32) + 1; // 32-byte header + field descriptors + terminator
+            const recordSize = 1 + 1 + 10 + 10 + 10 + 15 + 15 + 15 + 50; // Deletion flag + field sizes
+            const totalFileSize = headerSize + (data.length * recordSize);
+            
+            const buffer = new ArrayBuffer(totalFileSize);
+            const view = new DataView(buffer);
+            const textEncoder = new TextEncoder();
+            
+            // DBF Header (32 bytes)
+            view.setUint8(0, 0x03);                    // Version
+            view.setUint8(1, 25);                      // Last update year (2025 - 1900)
+            view.setUint8(2, 1);                       // Last update month
+            view.setUint8(3, 1);                       // Last update day
+            view.setUint32(4, data.length, true);     // Number of records (little-endian)
+            view.setUint16(8, headerSize, true);      // Header size (little-endian)
+            view.setUint16(10, recordSize, true);     // Record size (little-endian)
+            // Bytes 12-31 are reserved/unused
+            
+            // Field Descriptors (32 bytes each)
+            let fieldOffset = 32;
+            
+            // Field 1: Type (Character, 1 byte)
+            const typeField = textEncoder.encode('TYPE');
+            for (let i = 0; i < typeField.length; i++) {
+                view.setUint8(fieldOffset + i, typeField[i]);
+            }
+            view.setUint8(fieldOffset + 11, 0x43); // 'C' for Character
+            view.setUint8(fieldOffset + 16, 1);    // Field length
+            fieldOffset += 32;
+            
+            // Field 2: Line (Numeric, 10 bytes)
+            const lineField = textEncoder.encode('LINE');
+            for (let i = 0; i < lineField.length; i++) {
+                view.setUint8(fieldOffset + i, lineField[i]);
+            }
+            view.setUint8(fieldOffset + 11, 0x4E); // 'N' for Numeric
+            view.setUint8(fieldOffset + 16, 10);   // Field length
+            fieldOffset += 32;
+            
+            // Field 3: Point (Numeric, 10 bytes)
+            const pointField = textEncoder.encode('POINT');
+            for (let i = 0; i < pointField.length; i++) {
+                view.setUint8(fieldOffset + i, pointField[i]);
+            }
+            view.setUint8(fieldOffset + 11, 0x4E); // 'N' for Numeric
+            view.setUint8(fieldOffset + 16, 10);   // Field length
+            fieldOffset += 32;
+            
+            // Field 4: Index (Numeric, 10 bytes)
+            const indexField = textEncoder.encode('INDEX');
+            for (let i = 0; i < indexField.length; i++) {
+                view.setUint8(fieldOffset + i, indexField[i]);
+            }
+            view.setUint8(fieldOffset + 11, 0x4E); // 'N' for Numeric
+            view.setUint8(fieldOffset + 16, 10);   // Field length
+            fieldOffset += 32;
+            
+            // Field 5: Easting (Numeric, 15 bytes, 3 decimal places)
+            const eastingField = textEncoder.encode('EASTING');
+            for (let i = 0; i < eastingField.length; i++) {
+                view.setUint8(fieldOffset + i, eastingField[i]);
+            }
+            view.setUint8(fieldOffset + 11, 0x4E); // 'N' for Numeric
+            view.setUint8(fieldOffset + 16, 15);   // Field length
+            view.setUint8(fieldOffset + 17, 3);    // Decimal places
+            fieldOffset += 32;
+            
+            // Field 6: Northing (Numeric, 15 bytes, 3 decimal places)
+            const northingField = textEncoder.encode('NORTHING');
+            for (let i = 0; i < northingField.length; i++) {
+                view.setUint8(fieldOffset + i, northingField[i]);
+            }
+            view.setUint8(fieldOffset + 11, 0x4E); // 'N' for Numeric
+            view.setUint8(fieldOffset + 16, 15);   // Field length
+            view.setUint8(fieldOffset + 17, 3);    // Decimal places
+            fieldOffset += 32;
+            
+            // Field 7: Elevation (Numeric, 15 bytes, 3 decimal places)
+            const elevationField = textEncoder.encode('ELEVATION');
+            for (let i = 0; i < elevationField.length; i++) {
+                view.setUint8(fieldOffset + i, elevationField[i]);
+            }
+            view.setUint8(fieldOffset + 11, 0x4E); // 'N' for Numeric
+            view.setUint8(fieldOffset + 16, 15);   // Field length
+            view.setUint8(fieldOffset + 17, 3);    // Decimal places
+            fieldOffset += 32;
+            
+            // Field 8: Filename (Character, 50 bytes)
+            const filenameField = textEncoder.encode('FILENAME');
+            for (let i = 0; i < filenameField.length; i++) {
+                view.setUint8(fieldOffset + i, filenameField[i]);
+            }
+            view.setUint8(fieldOffset + 11, 0x43); // 'C' for Character
+            view.setUint8(fieldOffset + 16, 50);   // Field length
+            fieldOffset += 32;
+            
+            // Field descriptor terminator
+            view.setUint8(fieldOffset, 0x0D);
+            fieldOffset += 1;
+            
+            // Records
+            data.forEach((point, index) => {
+                let recordOffset = fieldOffset + (index * recordSize);
+                
+                // Deletion flag (not deleted)
+                view.setUint8(recordOffset, 0x20); // Space character
+                recordOffset += 1;
+                
+                // Type field (1 byte)
+                view.setUint8(recordOffset, point.type.charCodeAt(0));
+                recordOffset += 1;
+                
+                // Line field (10 bytes, right-aligned)
+                const lineStr = point.line.toString().padStart(10, ' ');
+                const lineBytes = textEncoder.encode(lineStr);
+                for (let i = 0; i < 10; i++) {
+                    view.setUint8(recordOffset + i, i < lineBytes.length ? lineBytes[i] : 32); // Space padding
+                }
+                recordOffset += 10;
+                
+                // Point field (10 bytes, right-aligned)
+                const pointStr = point.point.toString().padStart(10, ' ');
+                const pointBytes = textEncoder.encode(pointStr);
+                for (let i = 0; i < 10; i++) {
+                    view.setUint8(recordOffset + i, i < pointBytes.length ? pointBytes[i] : 32);
+                }
+                recordOffset += 10;
+                
+                // Index field (10 bytes, right-aligned)
+                const indexStr = point.index.toString().padStart(10, ' ');
+                const indexBytes = textEncoder.encode(indexStr);
+                for (let i = 0; i < 10; i++) {
+                    view.setUint8(recordOffset + i, i < indexBytes.length ? indexBytes[i] : 32);
+                }
+                recordOffset += 10;
+                
+                // Easting field (15 bytes, right-aligned, 3 decimal places)
+                const eastingStr = point.easting.toFixed(3).padStart(15, ' ');
+                const eastingBytes = textEncoder.encode(eastingStr);
+                for (let i = 0; i < 15; i++) {
+                    view.setUint8(recordOffset + i, i < eastingBytes.length ? eastingBytes[i] : 32);
+                }
+                recordOffset += 15;
+                
+                // Northing field (15 bytes, right-aligned, 3 decimal places)
+                const northingStr = point.northing.toFixed(3).padStart(15, ' ');
+                const northingBytes = textEncoder.encode(northingStr);
+                for (let i = 0; i < 15; i++) {
+                    view.setUint8(recordOffset + i, i < northingBytes.length ? northingBytes[i] : 32);
+                }
+                recordOffset += 15;
+                
+                // Elevation field (15 bytes, right-aligned, 3 decimal places)
+                const elevationStr = point.elevation.toFixed(3).padStart(15, ' ');
+                const elevationBytes = textEncoder.encode(elevationStr);
+                for (let i = 0; i < 15; i++) {
+                    view.setUint8(recordOffset + i, i < elevationBytes.length ? elevationBytes[i] : 32);
+                }
+                recordOffset += 15;
+                
+                // Filename field (50 bytes, left-aligned)
+                const filename = point.filename || '';
+                const filenameStr = filename.padEnd(50, ' ');
+                const filenameBytes = textEncoder.encode(filenameStr);
+                for (let i = 0; i < 50; i++) {
+                    view.setUint8(recordOffset + i, i < filenameBytes.length ? filenameBytes[i] : 32);
+                }
+                recordOffset += 50;
+            });
+            
+            return new Blob([buffer], { type: 'application/octet-stream' });
         }
 
         async function convertFiles() {
             if (uploadedFiles.length === 0) {
-                showStatus('Please select files first!', 'error');
+                showStatus('Please upload at least one file', 'error');
                 return;
             }
 
             const convertBtn = document.getElementById('convertBtn');
             convertBtn.disabled = true;
             convertBtn.classList.add('processing');
-            convertBtn.innerHTML = '⏳ Converting...';
+            convertBtn.innerHTML = '<span class="loading-spinner"></span> Converting...';
 
             try {
-                fileDataMap = {};
-                convertedFiles = {};
                 const utmZone = document.getElementById('utmZone').value;
                 const datum = document.getElementById('datum').value;
-
+                
+                fileDataMap = {};
                 let totalPoints = 0;
                 let allPreviewData = [];
 
-                // Process each file individually
+                // Process each file
                 for (let i = 0; i < uploadedFiles.length; i++) {
                     const file = uploadedFiles[i];
-                    updateGlobalProgress(i, uploadedFiles.length, `Processing file: ${file.name}`);
-                    updateFileStatus(i, 'processing', 'Parsing file...');
-                    
+                    updateGlobalProgress(i + 1, uploadedFiles.length, 'Processing files');
+                    updateFileStatus(i, 'processing', 'Processing...');
+
                     try {
                         const points = await parseSPSFile(file, i);
                         
@@ -1032,10 +1581,11 @@
                 await generateAllDownloads();
                 
                 document.getElementById('resultsSection').style.display = 'block';
+                document.getElementById('resultsSection').classList.add('fade-in');
 
                 // Hide progress after completion
                 setTimeout(() => {
-                    document.getElementById('globalProgress').style.display = 'none';
+                    document.getElementById('progressContainer').style.display = 'none';
                 }, 2000);
 
             } catch (error) {
@@ -1044,7 +1594,7 @@
             } finally {
                 convertBtn.disabled = false;
                 convertBtn.classList.remove('processing');
-                convertBtn.innerHTML = '🚀 Convert Files';
+                convertBtn.innerHTML = '<i class="fas fa-rocket"></i> Convert Files';
             }
         }
 
@@ -1072,6 +1622,7 @@
             html += '</table>';
             previewContent.innerHTML = html;
             previewSection.style.display = 'block';
+            previewSection.classList.add('fade-in');
         }
 
         async function generateAllDownloads() {
@@ -1091,8 +1642,9 @@
                 let downloadHtml = `
                     <div class="file-result-card">
                         <div class="file-result-header">
-                            📄 ${originalFile.name}
-                            <br><small>Output name: ${outputName}</small>
+                            <i class="fas fa-file-alt"></i>
+                            ${originalFile.name}
+                            <br><small>Output Name: ${outputName}</small>
                             <br><small>Points: ${points.length}</small>
                         </div>
                         <div class="download-grid">`;
@@ -1102,7 +1654,9 @@
                     const csvBlob = generateCSV(points);
                     const csvUrl = URL.createObjectURL(csvBlob);
                     const csvFileName = `${outputName}.csv`;
-                    downloadHtml += `<a href="${csvUrl}" download="${csvFileName}" class="download-btn">📊 CSV</a>`;
+                    downloadHtml += `<a href="${csvUrl}" download="${csvFileName}" class="download-btn">
+                        <i class="fas fa-table"></i> CSV
+                    </a>`;
                     
                     if (zipAllFiles) allFilesZip.file(csvFileName, csvBlob);
                 }
@@ -1111,7 +1665,9 @@
                     const geojsonBlob = generateGeoJSON(points);
                     const geojsonUrl = URL.createObjectURL(geojsonBlob);
                     const geojsonFileName = `${outputName}.geojson`;
-                    downloadHtml += `<a href="${geojsonUrl}" download="${geojsonFileName}" class="download-btn">🗺️ GeoJSON</a>`;
+                    downloadHtml += `<a href="${geojsonUrl}" download="${geojsonFileName}" class="download-btn">
+                        <i class="fas fa-map"></i> GeoJSON
+                    </a>`;
                     
                     if (zipAllFiles) allFilesZip.file(geojsonFileName, geojsonBlob);
                 }
@@ -1120,16 +1676,22 @@
                     const kmlBlob = generateKML(points);
                     const kmlUrl = URL.createObjectURL(kmlBlob);
                     const kmlFileName = `${outputName}.kml`;
-                    downloadHtml += `<a href="${kmlUrl}" download="${kmlFileName}" class="download-btn">🌍 KML</a>`;
+                    downloadHtml += `<a href="${kmlUrl}" download="${kmlFileName}" class="download-btn">
+                        <i class="fas fa-globe"></i> KML
+                    </a>`;
                     
                     if (zipAllFiles) allFilesZip.file(kmlFileName, kmlBlob);
                 }
 
                 if (document.getElementById('exportShapefile').checked) {
-                    const shapefileBlob = await generateShapefile(points);
+                    const utmZone = parseInt(document.getElementById('utmZone').value);
+                    const datum = document.getElementById('datum').value;
+                    const shapefileBlob = await generateShapefile(points, datum, utmZone);
                     const shapefileUrl = URL.createObjectURL(shapefileBlob);
                     const shapefileName = `${outputName}_shapefile.zip`;
-                    downloadHtml += `<a href="${shapefileUrl}" download="${shapefileName}" class="download-btn">📁 Shapefile</a>`;
+                    downloadHtml += `<a href="${shapefileUrl}" download="${shapefileName}" class="download-btn">
+                        <i class="fas fa-layer-group"></i> Shapefile
+                    </a>`;
                     
                     if (zipAllFiles) allFilesZip.file(shapefileName, shapefileBlob);
                 }
@@ -1144,15 +1706,16 @@
                 const allFilesUrl = URL.createObjectURL(allFilesBlob);
                 
                 fileResultsGrid.innerHTML += `
-                    <div class="file-result-card all-files-card">
-                        <div class="file-result-header" style="color: #333;">
-                            📦 Download All Files
+                    <div class="file-result-card" style="border: 2px solid var(--success-color);">
+                        <div class="file-result-header" style="color: var(--success-color);">
+                            <i class="fas fa-download"></i>
+                            Download All Files
                             <br><small>Archive containing all converted files</small>
                         </div>
                         <div class="download-grid">
                             <a href="${allFilesUrl}" download="all_converted_files.zip" 
                                class="download-btn download-all-btn">
-                               🎯 Download All
+                               <i class="fas fa-cloud-download-alt"></i> Download All
                             </a>
                         </div>
                     </div>`;
@@ -1161,7 +1724,6 @@
 
         // Cleanup URLs when page unloads to prevent memory leaks
         window.addEventListener('beforeunload', () => {
-            // Revoke all created object URLs
             document.querySelectorAll('a[href^="blob:"]').forEach(link => {
                 URL.revokeObjectURL(link.href);
             });
@@ -1169,3 +1731,4 @@
     </script>
 </body>
 </html>
+
